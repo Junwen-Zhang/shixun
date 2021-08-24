@@ -12,10 +12,12 @@ class SqlModel():
 
     #析构函数
     def __del__(self):
-           self.db.close()
-# 增
+        #    self.db.close()
+        return 
+    # 增
     def sqlInsert(self, sql):                                                          
         try:    
+            self.db.ping(reconnect=True)
             self.cur.execute(sql)
             data = self.db.insert_id()  ###要在db.commit()之前才能起作用！！！！
             self.db.commit()
@@ -25,9 +27,12 @@ class SqlModel():
         except Exception as e:
             print("插入失败",e)
             self.db.rollback()
+        self.cur.close()
+        self.db.close()
 # 删
     def sqlDelete(self, sql):                                                          
-        try:    
+        try: 
+            self.db.ping(reconnect=True)   
             self.cur.execute(sql)
             self.db.commit()
             print("删除成功")
@@ -35,9 +40,12 @@ class SqlModel():
         except Exception as e:
             print("删除失败",e)
             self.db.rollback()
+        self.cur.close()
+        self.db.close()
 # 改
     def sqlUpdate(self, sql):                                                          
-        try:    
+        try:
+            self.db.ping(reconnect=True)    
             self.cur.execute(sql)
             self.db.commit()
             print("更新成功")
@@ -45,16 +53,19 @@ class SqlModel():
         except Exception as e:
             print("更新失败",e)
             self.db.rollback()
+        self.cur.close()
+        self.db.close()
 # 查
 
     def sqlSelect(self, sql:str, get_one:bool=False):                                                         
+        
         try: 
+            self.db.ping(reconnect=True)  ###现在设置的时间是10分钟，但是
             self.cur.execute(sql)
             if get_one:
                 
                 data = self.cur.fetchone()
             else:
-                
                 data = self.cur.fetchall()
             self.db.commit()
             print("查询成功")
@@ -62,6 +73,8 @@ class SqlModel():
         except Exception as e:
             print("查询失败",e)
             self.db.rollback()
+        self.cur.close()
+        self.db.close()
 
 
         
@@ -89,14 +102,14 @@ if __name__=="__main__":
     data2=sqlmodel.sqlInsert(sql)
     print("insert:",data2)
     
-    # #查询
-    # sql0 =  "SElECT * FROM xmy"
-    # data = sqlmodel.sqlSelect(sql,get_one=False)
-    # print(data)
-    # # 删除
-    # sql2 = "DELETE FROM xmy WHERE xmy.sid<2"
-    # sqlmodel.sqlDelete(sql2)
+    #查询
+    sql0 =  "SElECT * FROM xmy"
+    data = sqlmodel.sqlSelect(sql,get_one=False)
+    print(data)
+    # 删除
+    sql2 = "DELETE FROM xmy WHERE xmy.sid<2"
+    sqlmodel.sqlDelete(sql2)
 
-    # #修改
-    # sql3 = "UPDATE xmy set sname='xixi' WHERE xmy.sid=33"
-    # sqlmodel.sqlUpdate(sql3)
+    #修改
+    sql3 = "UPDATE xmy set sname='xixi' WHERE xmy.sid=33"
+    sqlmodel.sqlUpdate(sql3)
