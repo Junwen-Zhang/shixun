@@ -12,9 +12,10 @@ class SqlModel():
 
     #析构函数
     def __del__(self):
-        #    self.db.close()
-        return 
-    # 增
+        self.cur.close()
+        self.db.close()
+        
+# 增
     def sqlInsert(self, sql):                                                          
         try:    
             self.db.ping(reconnect=True)
@@ -27,8 +28,7 @@ class SqlModel():
         except Exception as e:
             print("插入失败",e)
             self.db.rollback()
-        self.cur.close()
-        self.db.close()
+        
 # 删
     def sqlDelete(self, sql):                                                          
         try: 
@@ -40,8 +40,7 @@ class SqlModel():
         except Exception as e:
             print("删除失败",e)
             self.db.rollback()
-        self.cur.close()
-        self.db.close()
+      
 # 改
     def sqlUpdate(self, sql):                                                          
         try:
@@ -53,14 +52,13 @@ class SqlModel():
         except Exception as e:
             print("更新失败",e)
             self.db.rollback()
-        self.cur.close()
-        self.db.close()
+      
 # 查
 
     def sqlSelect(self, sql:str, get_one:bool=False):                                                         
         
         try: 
-            self.db.ping(reconnect=True)  ###现在设置的时间是10分钟，但是
+            self.db.ping(reconnect=True)  ###现在设置的时间是10分钟，但是10分钟没有连接上就会自动断掉，然后连接销毁，也不会重连了！！！！！！
             self.cur.execute(sql)
             if get_one:
                 
@@ -73,8 +71,7 @@ class SqlModel():
         except Exception as e:
             print("查询失败",e)
             self.db.rollback()
-        self.cur.close()
-        self.db.close()
+   
 
 
         
@@ -113,3 +110,10 @@ if __name__=="__main__":
     #修改
     sql3 = "UPDATE xmy set sname='xixi' WHERE xmy.sid=33"
     sqlmodel.sqlUpdate(sql3)
+
+    #模糊查询
+    sql3=""" SELECT * 
+            FROM user
+            WHERE user.uname LIKE '%{value}%'""".format(value="string")
+    data = sqlmodel.sqlSelect(sql3)
+    print(data)
