@@ -54,6 +54,55 @@ async def photoUpload(uname:str = Form(...), photofile:UploadFile = File(...)):
 async def informationUpdate(userInfo:UserModel):
      return userService.informationUpdateAll(userInfo)
 
+'''
+用户关注和被关注模块
+'''
+#用户关注他人  uname关注uname_other
+#未关注，则关注
+#已关注，则取消关注
+@router.put("/interaction/follow_other", tags=["users"])
+async def followOther(uname:str=Body(...),uname_other:str=Body(...)):
+     return userService.followOther(uname,uname_other)
+
+#返回已关注的人数和信息 uname
+@router.get("/interaction/select_follow",tags=["users"])
+async def selectFollow(uname):
+     return userService.selectFollow(uname)
+
+#返回粉丝数和信息
+@router.get("/interaction/select_fans",tags=["users"])
+async def selectFans(uname):
+     return userService.selectFans(uname)
+
+'''
+人脸识别-----实现比对
+'''
+#人脸验证：如果忘记密码，可以打开摄像头，进行比对之前上传过的照片，进行找回密码
+#适用于邮箱丢失的情况
+#本来这个接口应该用get的，但是face是一个文件类型，为了方便就用put弄成请求体的格式
+#可以输入邮箱或是用户名   ------登陆那里要不要邮箱或者用户名都可以实现登陆？？？？？？ 不，这个不好实现，无法判断他是输入的邮箱还是用户名，还是通过邮箱吧
+# @router.put("/face_recognition",tags=["users"])
+# async def face_recognition(uemail:str=Body(...),face:UploadFile=File(...)):  
+#      return userService.face_recognition(uemail,face)
+
+@router.put("/face_upload",tags=["users"])
+async def faceUpload(uname:str=Body(...),face:UploadFile=File(...)):
+     return userService.faceUpload(uname,face)
+
+@router.put("/face_recognition_by_name",tags=["users"])
+async def face_recognition(uname:str=Body(...),face:UploadFile=File(...)):  
+     return userService.face_recognition(uname,face)
+
+
+
+
+
+
+
+
+
+
+
 
 
 # #邮箱
