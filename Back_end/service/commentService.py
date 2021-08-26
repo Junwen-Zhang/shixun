@@ -25,8 +25,8 @@ def createCommentInfos(comment:CommentModel):
     )
 
 # 查看个人发布的评论
-def searchComment(user_id:int):
-    ccontent_list = commentDao.selectComment(user_id)
+def searchComment(user_id:int,page_id:int):
+    ccontent_list = commentDao.selectComment(user_id,page_id)
     return ccontent_list
 
 # 删评

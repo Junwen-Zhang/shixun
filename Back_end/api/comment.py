@@ -16,9 +16,9 @@ async def creatComment(comment:CommentModel):
 
 # 查看个人发布的所有评论
 @router.get("/searchMyComment", tags=["comment"])
-async def searchMyComment(uid:int):
+async def searchMyComment(uid:int,page_id:int):
     # print(uid)
-    return commentService.searchComment(uid)
+    return commentService.searchComment(uid,page_id)
 
 # 删除个人发布的评价
 @router.post("/deleteMyComment", tags=["comment"])

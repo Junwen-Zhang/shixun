@@ -31,7 +31,7 @@ def insertComment(commentModel:CommentModel):
 
 
 # 由用户id来查看该用户所发表的评论内容的id,返回一个“评论内容id-时间-评论内容”的集合
-def selectComment(uid:int):
+def selectComment(uid:int,page_id:int):
     sqlmodel = SqlModel()
     sql = """SELECT * FROM user_comment
             WHERE user_id='%d'
@@ -45,6 +45,11 @@ def selectComment(uid:int):
             """ % (commentid)
         temp = sqlmodel.sqlSelect(sql, True)
         ccontent_list.append(temp)
+    size = len(ccontent_list)
+    if size < page_id * 5:
+        ccontent_list = ccontent_list[(page_id - 1) * 5:]
+    else:
+        ccontent_list = ccontent_list[(page_id - 1) * 5:page_id * 5]
     return ccontent_list
 
 # 删除评论
