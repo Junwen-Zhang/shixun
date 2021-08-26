@@ -9,17 +9,20 @@ datapath="./assets/audio/passage/"
 #----------------------------------------------------------------------------------------------------------------------
 #所有文章
 #----------------------------------------------------------------------------------------------------------------------
-#罗列所有文章列表
-def selectAllPassage():  
+#分页罗列所有文章列表
+def selectAllPassage(page):  
     sqlmodel = SqlModel()
     #passage.pid,pname,ptime,pcontent,user.uname
-    sql = """SELECT passage.pid,pname,ptime,pcontent,plook,user.uname,user.uid from passage
-             INNER JOIN user_passage ON passage.pid=user_passage.pid
-             INNER JOIN user ON user.uid=user_passage.uid """
+    begin=(page-1)*4
+    sql = """SELECT passage.pid,pname,ptime,pcontent,plook,user.uname,user.uid from passage 
+            INNER JOIN user_passage ON passage.pid=user_passage.pid
+            INNER JOIN user ON user.uid=user_passage.uid
+            order by ptime desc
+            limit %s,4"""%(begin)
     
     data = sqlmodel.sqlSelect(sql,get_one=False)
 
-    addpassageliking(data)
+    addallpassageliking(data)
 
     return data
 
@@ -30,10 +33,11 @@ def selectSearchPassage(pname:str):
             INNER JOIN user_passage ON passage.pid=user_passage.pid
             INNER JOIN user ON user.uid=user_passage.uid
             WHERE passage.pname LIKE '%%%s%%'
+            order by ptime desc
             """%(pname)
     data = sqlmodel.sqlSelect(sql,get_one=False)
 
-    addpassageliking(data)
+    addallpassageliking(data)
 
     return data
 
@@ -55,11 +59,14 @@ def selectChosenPassage(pid):
 #----------------------------------------------------------------------------------------------------------------------
 
 #罗列我的文章列表
-def selectMyPassage(uid): 
+def selectMyPassage(uid,page): 
+    begin=(page-1)*4
     sqlmodel = SqlModel()
     sql="""  SELECT * from passage
             INNER JOIN user_passage ON passage.pid=user_passage.pid
-            WHERE user_passage.uid=%s"""%(uid)
+            WHERE user_passage.uid=%s
+            order by ptime desc
+            limit %s,4"""%(uid,begin)
     data = sqlmodel.sqlSelect(sql,get_one=False)
     addpassageliking(data)
     return data
@@ -71,6 +78,7 @@ def selectMySearchPassage(pname:str,uid:int):
             INNER JOIN user_passage ON passage.pid=user_passage.pid
             INNER JOIN user ON user.uid=user_passage.uid
             WHERE user.uid=%s AND passage.pname LIKE '%%%s%%'
+            order by ptime desc
             """%(uid,pname)
                 
     data = sqlmodel.sqlSelect(sql,get_one=False)
@@ -149,7 +157,8 @@ def selectPassageComment(pid:int):
             INNER JOIN user ON uid=user_comment.user_id
             INNER JOIN comment_passage ON comment.comment_id=comment_passage.comment_id
             INNER JOIN passage ON passage.pid=comment_passage.passage_id
-            WHERE passage.pid=%s"""%(pid)
+            WHERE passage.pid=%s
+            order by cdate desc"""%(pid)
     data=sqlmodel.sqlSelect(sql,get_one=False)
     return data
 #查看文章点赞
@@ -187,6 +196,16 @@ def updatePassageLook(pid:int):
     sql="""UPDATE passage set plook=plook+1
            WHERE passage.pid=%s"""%(pid)
     sqlmodel.sqlUpdate(sql)
+
+#所有文章数据，没有评论内容和点赞人
+def addallpassageliking(data):
+    for sdata in data:
+        like=selectPassageLiking(sdata['pid'])
+        #sdata['who_like']=like
+        sdata['like_cnt']=len(like)
+        comment=selectPassageComment(sdata['pid'])
+        #sdata['comment']=comment
+        sdata['comment_cnt']=len(comment)
     
 #data数据中添加点赞评论信息
 def addpassageliking(data):

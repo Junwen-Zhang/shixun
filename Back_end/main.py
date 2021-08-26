@@ -3,7 +3,7 @@ import uvicorn
 # FASTAPI模板
 from fastapi import FastAPI
 # 注册相应的api
-from api import audio
+from api import audio,passage
 # 配置跨域
 from starlette.middleware.cors import CORSMiddleware
 # 返回json格式的数据
@@ -29,6 +29,7 @@ app.add_middleware(
 
 ## 注册api模块
 app.include_router(audio.router,prefix="/api/audios")
+app.include_router(passage.router,prefix="/yyjsb/passage")
 
 ## 配置容器启动相应的实例
 if __name__ == '__main__':

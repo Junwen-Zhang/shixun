@@ -11,8 +11,8 @@ dateEnconding=DateEnconding()
 #所有文章
 #----------------------------------------------------------------------------------------------------------------------
 #罗列所有文章列表
-def getPassages():
-    data = passageDao.selectAllPassage()
+def getPassages(page):
+    data = passageDao.selectAllPassage(page)
     return JSONResponse(    
         content={
             "code":"200",
@@ -73,9 +73,9 @@ def getPassage(pid:int):
 #----------------------------------------------------------------------------------------------------------------------
 
 #罗列我的文章列表
-def getMyPassages(uid:int):
+def getMyPassages(uid:int,page:int):
 
-    data = passageDao.selectMyPassage(uid)
+    data = passageDao.selectMyPassage(uid,page)
     return JSONResponse(
         content={
             "code":"200",

@@ -11,9 +11,9 @@ router = APIRouter()
 
 #罗列所有文章列表
 @router.get("/getpassages", tags=["passage_all"]) 
-async def getPassages():
+async def getPassages(page:int):
     # 通过调用相应的服务得到对应的反馈
-    return passageService.getPassages()
+    return passageService.getPassages(page)
 
 
 #查询所有文章（返回所有与所查文章名一样的文章）
@@ -33,8 +33,8 @@ async def getPassage(pname:str,pid:int):
 
 #罗列我的文章列表
 @router.get("/getmypassages", tags=["passage_my"]) 
-async def getMyPassages(uid:int):
-    return passageService.getMyPassages(uid)
+async def getMyPassages(uid:int,page:int):
+    return passageService.getMyPassages(uid,page)
 
 #查询我的文章
 @router.get("/getmypassages/getmypassage", tags=["passage_my"])
