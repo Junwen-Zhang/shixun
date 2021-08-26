@@ -92,7 +92,19 @@ async def faceUpload(uname:str=Body(...),face:UploadFile=File(...)):
 @router.put("/face_recognition_by_name",tags=["users"])
 async def face_recognition(uname:str=Body(...),face:UploadFile=File(...)):  
      return userService.face_recognition(uname,face)
-     
+
+
+
+
+
+
+
+
+
+
+
+
+
 # #邮箱
 # @router.put("/settings/email", tags=["users"])
 # async def emailEdit(uname:str=Body(...),email:str=Body(...)):
