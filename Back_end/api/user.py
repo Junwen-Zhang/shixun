@@ -65,12 +65,12 @@ async def followOther(uname:str=Body(...),uname_other:str=Body(...)):
      return userService.followOther(uname,uname_other)
 
 #返回已关注的人数和信息 uname
-@router.put("/interaction/select_follow",tags=["users"])
+@router.get("/interaction/select_follow",tags=["users"])
 async def selectFollow(uname):
      return userService.selectFollow(uname)
 
 #返回粉丝数和信息
-@router.put("/interaction/select_fans",tags=["users"])
+@router.get("/interaction/select_fans",tags=["users"])
 async def selectFans(uname):
      return userService.selectFans(uname)
 
