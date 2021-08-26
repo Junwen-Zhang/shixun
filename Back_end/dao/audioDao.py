@@ -2,9 +2,9 @@ import pymysql
 from model.sqlModel import SqlModel
 from fastapi import Body
 
-sqlmodel = SqlModel()
 
 def search_audioinfo(uid:int):
+    sqlmodel = SqlModel()
     sql = """SElECT * 
              FROM user 
              WHERE user.uid='%s'"""%(uid)
@@ -14,6 +14,7 @@ def search_audioinfo(uid:int):
 
 
 def updateAudioinfo(spd,pit,vol,per,uid):
+    sqlmodel = SqlModel()
     sql = """UPDATE user 
     set %s =%s,%s =%s,%s =%s,%s =%s 
     WHERE user.uid=%s"""%("aspeed",spd,"apit",pit,"avol",vol,"aper",per,uid)   
