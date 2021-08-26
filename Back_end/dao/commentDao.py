@@ -39,7 +39,7 @@ def selectComment(uid:int):
     uid_commentid_list = sqlmodel.sqlSelect(sql,False)
     ccontent_list=[]
     for row in uid_commentid_list:
-        commentid = row['comment_id']            # row
+        commentid = row['comment_id']            #  row
         sql = """SELECT * FROM comment
             WHERE comment_id='%d'
             """ % (commentid)
