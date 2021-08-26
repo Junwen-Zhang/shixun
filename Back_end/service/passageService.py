@@ -2,7 +2,7 @@ from fastapi.responses import JSONResponse,Response
 from dao import passageDao
 from model.passageModel import PassageModel,PassageLiking,PassageModelList
 from model.timeModel import DateEnconding,Enconding
-from service.audioService import AudioService
+from service import audioService
 
 encond=Enconding()
 dateEnconding=DateEnconding()
@@ -132,7 +132,7 @@ def postPassage(passageInfo:PassageModel):
     )
     else:
         pid=data[0]['pid']
-        audioService=AudioService()
+        #audioService=AudioService()
         audioService.createAudio(passageInfo.passage_uid,passageInfo.pcontent,1,pid)
         return JSONResponse(
                 content={
@@ -148,7 +148,7 @@ def postPassage(passageInfo:PassageModel):
 #修改我的文章内容
 def putPassageContent(passageInfo:PassageModel):
     data=passageDao.updatePassageContent(passageInfo)
-    audioService=AudioService()
+    #audioService=AudioService()
     audioService.createAudio(data[0]['uid'],passageInfo.pcontent,1,passageInfo.pid)
     return JSONResponse(
         content={
@@ -200,14 +200,7 @@ def postPassageLiking(passageLiking:PassageLiking):
         }
     )
 
-#----------------------------------------------------------------------------------------------------------------------
-#辅助功能
-#----------------------------------------------------------------------------------------------------------------------
 
-#生成文章语音（发布文章、修改文章时）
-def createAudio(passageInfo:PassageModel):
-    audioService=AudioService()
-    audioService.createAudio(passageInfo.passage_uid,passageInfo.pcontent,1,passageInfo.pid)
 
 
 #------------------------------------------------------------------------------------------------------------------
