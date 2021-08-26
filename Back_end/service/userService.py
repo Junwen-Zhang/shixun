@@ -5,6 +5,7 @@ from fastapi import Request,File,UploadFile,Body,Form
 from dao import userDao #就一定要用到持久化层
 from model.userModel import UserModel
 from model.emailModel import EmailModel
+from model.faceModel import FaceModel
 import hashlib
 from pathlib import Path
 from aiopathlib import AsyncPath
@@ -117,7 +118,8 @@ def usersRegister(userInfo:UserModel):
 
 def usersLogin(uname:str,upasswd:str):
     if (uname == "已注销"):
-        return JSONResponse({
+        return JSONResponse(
+            content={
                 "code":000,
                 "data":{
                 },
@@ -128,7 +130,8 @@ def usersLogin(uname:str,upasswd:str):
     if (data):             #判断元祖是否为空的直接这样
         passwd = data[0]["upasswd"]
         if (upasswd == passwd):
-            return JSONResponse({
+            return JSONResponse(
+                content={
                 "code":200,
                 "data":{
                     "user_data":data    ##用户登录，要返回这个user的所有信息
@@ -136,14 +139,16 @@ def usersLogin(uname:str,upasswd:str):
                 "message":"密码匹配"
             })
         else:
-            return JSONResponse({
+            return JSONResponse(
+                content={
                 "code":400,
                 "data":{
                 },
                 "message":"密码不匹配"
             })    
     else: 
-        return JSONResponse({
+        return JSONResponse(
+            content={
                 "code":422,        
                 "data":{
                 },
@@ -152,7 +157,7 @@ def usersLogin(uname:str,upasswd:str):
         
 
 def informationUpdateAll(userInfo:UserModel):   ##用户更新信息也应该返回，改变的user的这个信息
-    userDao.updateInformationAll(userInfo)   #首先更新了
+    userDao.updateInformationAllByName(userInfo)   #首先更新了
     # data = userDao.selectUsersByName(userInfo.uname)  #然后返回更新的这一条全部的user信息
     return JSONResponse(
         content={
@@ -202,7 +207,7 @@ def photoUpload(uname:str=Form(...), photofile:UploadFile=File(...)):
         print("失败",e)
     finally:
         photofile.file.close()
-    userDao.updateInformationSingle("uphoto",fileaddress,uname)
+    userDao.updateInformationSingleByName("uphoto",fileaddress,uname)
     return JSONResponse(
         content={
             'code':200,
@@ -210,5 +215,174 @@ def photoUpload(uname:str=Form(...), photofile:UploadFile=File(...)):
                 'image':fileaddress
             },
             'message':'上传头像成功'
+        }
+    )
+
+
+
+def face_recognition(uname:str=Body(...),face:UploadFile=File(...)):
+    facemodel = FaceModel()
+    #首先判断传入的照片是否有人脸
+    number = facemodel.face_detect(face.file)
+    if (number==0 or number>1):
+        return JSONResponse(
+            content={
+                'code':422,
+                'data':{
+                    
+                },
+                'message':'图片未检测到人脸或图片有多张人脸'
+            }
+        )
+    
+    #从数据库中找到之前上传的照片
+    data = userDao.selectUsersByName(uname)
+    data_face = data[0]["uface"]
+    face_path = "./assets/faces/"+data_face
+    face_save = open(face_path,'rb')
+    
+    #刚传入的face去跟数据库里面的图片进行比对
+    #是可以保证两张图片都有人脸的
+    result = facemodel.face_comparison(face.file,face_save)    ### face.file！！！！！！
+    if (result["is_same_person"]):
+            return JSONResponse(
+            content={
+                'code':200,
+                'data':{
+                    'result':result
+                },
+                'message':"比对成功"
+            }
+        )
+    else:
+            return JSONResponse(
+            content={
+                'code':400,
+                'data':{
+                    'result':result
+                },
+                'message':"比对失败"
+            }
+        )
+
+
+#跟photoload差不多，不过多了一个人脸检测
+#上传到uface的参数也改一下
+def faceUpload(uname:str=Body(...),face:UploadFile=File(...)):
+    #首先检测人脸
+    facemodel = FaceModel()
+    #首先判断传入的照片是否有人脸
+    number = facemodel.face_detect(face.file)
+    if (number==0 or number>1):
+        return JSONResponse(
+            content={
+                'code':422,
+                'data':{
+                    
+                },
+                'message':'图片未检测到人脸或图片有多张人脸'
+            }
+        )
+    #然后进行上传到静态资源和命名上传给数据库的工作
+    peanutweb="http://424z7l3858.qicp.vip"   
+    suffix = Path(face.filename).suffix
+    localaddress = "./assets/faces/"+uname+suffix #静态资源库地址
+    fileaddress = peanutweb+"/assets/pictures/"+uname+suffix #外面可以访问到的地址
+    
+    try: 
+        newfile = open(localaddress,'wb') #以字节形式写入要加b
+        shutil.copyfileobj(face.file,newfile) #复制文件 用newfile.write也写
+        print(fileaddress)
+    except Exception as e:
+        print("失败",e)
+    finally:
+        face.file.close()
+    #传给uface的只有静态资源库的命名，因为该图片信息可以不进行展示--------------------------------
+    facename = uname+suffix
+    userDao.updateInformationSingleByName("uface",facename,uname)
+    return JSONResponse(
+        content={
+            'code':200,
+            'data':{
+                'image':fileaddress
+            },
+            'message':'人脸照片上传成功'
+        }
+    )
+
+'''
+关注相关功能
+'''
+def followOther(uname,uname_other):  #uname和uname_other一定是存在的，所以这里就不判断是否data为空了
+    #这里统一都把id找出来
+    user_data = userDao.selectUsersByName(uname)
+    user_other_data = userDao.selectUsersByName(uname_other)
+    user_id = user_data[0]["uid"]
+    user_other_id= user_other_data[0]["uid"]
+    #首先要看看关注没有
+    data = userDao.selectFollowRelationship(user_id,user_other_id)
+    #若关注，则取消关注------------------------------------------
+    #uname的关注减去1
+    data1_follow = user_data[0]["ufollow"]-1
+    userDao.updateInformationSingleByName(edit_name="ufollow",edit_data=data1_follow,uname=uname)
+    #uname_other的粉丝数减去1
+    data2_fans = user_other_data[0]["ufans"]-1
+    #user_user表的删除
+    userDao.updateInformationSingleByName(edit_name="ufans",edit_data=data2_fans,uname=uname_other)
+    if (data):
+        userDao.deleteFollowRelationship(user_id,user_other_id)
+        return JSONResponse(
+        content={
+            'code':200,
+            'data':{
+                'user_follow':data1_follow,    #先暂且这么返回吧
+                'user_other_fans':data2_fans
+            },
+            'message':'%s取消关注%s成功'%(uname,uname_other)
+        }
+    )
+    #若没有关注：则关注----------------------------------------
+    #uname的关注增加1
+    data1_follow = user_data[0]["ufollow"]+1
+    userDao.updateInformationSingleByName(edit_name="ufollow",edit_data=data1_follow,uname=uname)
+    #uname_other的粉丝数增加1
+    data2_fans = user_other_data[0]["ufans"]+1
+    userDao.updateInformationSingleByName(edit_name="ufans",edit_data=data2_fans,uname=uname_other)
+    #user_user表增加映射关系------------------------------------------------------------------------只关注一次，或者再一次就取消
+    userDao.insertFollowRelationship(user_id,user_other_id)
+    return JSONResponse(
+        content={
+            'code':200,
+            'data':{
+                'user_follow':data1_follow,    #先暂且这么返回吧
+                'user_other_fans':data2_fans
+            },
+            'message':'%s关注%s成功'%(uname,uname_other)
+        }
+    )
+
+def selectFollow(uname):
+    data = userDao.selectFollow(uname)
+    return JSONResponse(
+        content={
+            'code':200,
+            'data':{
+                'users_data':data,
+                'number':len(data)     
+            },
+            'message':'返回成功'
+        }
+    )
+#大致和上面差不多，不过sql语句要发生变化
+def selectFans(uname):
+    data = userDao.selectFans(uname)
+    return JSONResponse(
+        content={
+            'code':200,
+            'data':{
+                'users_data':data,
+                'number':len(data)     
+            },
+            'message':'返回成功'
         }
     )
