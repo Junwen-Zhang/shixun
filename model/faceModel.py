@@ -7,15 +7,15 @@ import shutil
 class FaceModel():
     def __init__(self):
         return
-
+    #这两个函数所传的参数必须都要是文件流！！！！！！！！！！！！！！！！！！！！也就是说rb的形式打开才行！！！！！！！！！！！！！！必须打开
     def face_comparison(self,file_to, file_standard):
         # Pre-calculated face encoding of Obama generated with face_recognition.face_encodings(img)
+        face_found = False
+        is_same_person = False
         try:
             code1 = face_recognition.face_encodings(face_recognition.load_image_file(file_to))[0]
             # Load the uploaded image file
             code2 = face_recognition.face_encodings(face_recognition.load_image_file(file_standard))[0]
-            face_found = False
-            is_same_person = False
         #首先判断两张图片里有有人脸，然后再将这两张图片的人脸进行比对
             if len(code1) > 0 and len(code2) > 0:
                 face_found = True           

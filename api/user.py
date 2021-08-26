@@ -53,9 +53,16 @@ async def photoUpload(uname:str = Form(...), photofile:UploadFile = File(...)):
 @router.put("/settings", tags=["users"])
 async def informationUpdate(userInfo:UserModel):
      return userService.informationUpdateAll(userInfo)
+'''
+操作者访问作者的个人主页
+'''
+@router.get("/visit",tags=["users"])
+async def visit(uname:str,uname_other:str):
+     return userService.visit(uname,uname_other)
 
 '''
 用户关注和被关注模块
+uname关注uname_other
 '''
 #用户关注他人  uname关注uname_other
 #未关注，则关注
@@ -85,13 +92,13 @@ async def selectFans(uname):
 # async def face_recognition(uemail:str=Body(...),face:UploadFile=File(...)):  
 #      return userService.face_recognition(uemail,face)
 
-@router.put("/face_upload",tags=["users"])
+@router.post("/face_upload",tags=["users"])
 async def faceUpload(uname:str=Body(...),face:UploadFile=File(...)):
      return userService.faceUpload(uname,face)
 
-@router.put("/face_recognition_by_name",tags=["users"])
+@router.post("/face_recognition_by_name",tags=["users"])
 async def face_recognition(uname:str=Body(...),face:UploadFile=File(...)):  
-     return userService.face_recognition(uname,face)
+     return userService.faceRecognition(uname,face)
 
 
 

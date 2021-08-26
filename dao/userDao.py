@@ -16,11 +16,14 @@ from fastapi import Body
 #     return data
 
 
-
+#这里用到花生壳了------------------------------------------------------------------------------------
 #插入用户的账户名、密码、邮箱
 def insertUsers(userInfo:UserModel):  #用户注册只需要unam,upasswd,uemail，添加uadmin=0 不是管理员-以及默认声音设置   ufollow，ufans
+    defaultphoto = "http://424z7l3858.qicp.vip/assets/pictures/已注销.png"
     sqlmodel = SqlModel()
-    sql = "INSERT INTO user(uname,upasswd,uemail,uadmin,aspeed,apit,avol,aper,ufollow,ufans) VALUES ('%s','%s','%s',0,5,5,5,0,0,0)"%(userInfo.uname,userInfo.upasswd,userInfo.uemail) ##特别注意这里%s上面有引号！！！！
+    sql = """INSERT INTO user(uname,upasswd,uemail,uadmin,aspeed,apit,avol,aper,ufollow,ufans,uphoto) 
+             VALUES ('%s','%s','%s',0,5,5,5,0,0,0,'%s')"""%(userInfo.uname,userInfo.upasswd,userInfo.uemail,defaultphoto) ##特别注意这里%s上面有引号！！！！
+    print(sql)
     sqlmodel.sqlInsert(sql)
 
 #通过用户的账户名查找用户

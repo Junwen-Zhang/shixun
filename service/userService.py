@@ -207,6 +207,7 @@ def photoUpload(uname:str=Form(...), photofile:UploadFile=File(...)):
         print("失败",e)
     finally:
         photofile.file.close()
+        newfile.close()
     userDao.updateInformationSingleByName("uphoto",fileaddress,uname)
     return JSONResponse(
         content={
@@ -220,7 +221,7 @@ def photoUpload(uname:str=Form(...), photofile:UploadFile=File(...)):
 
 
 
-def face_recognition(uname:str=Body(...),face:UploadFile=File(...)):
+def faceRecognition(uname:str=Body(...),face:UploadFile=File(...)):
     facemodel = FaceModel()
     #首先判断传入的照片是否有人脸
     number = facemodel.face_detect(face.file)
@@ -269,34 +270,56 @@ def face_recognition(uname:str=Body(...),face:UploadFile=File(...)):
 #跟photoload差不多，不过多了一个人脸检测
 #上传到uface的参数也改一下
 def faceUpload(uname:str=Body(...),face:UploadFile=File(...)):
+    
     #首先检测人脸
     facemodel = FaceModel()
-    #首先判断传入的照片是否有人脸
-    number = facemodel.face_detect(face.file)
-    if (number==0 or number>1):
-        return JSONResponse(
-            content={
-                'code':422,
-                'data':{
-                    
-                },
-                'message':'图片未检测到人脸或图片有多张人脸'
-            }
-        )
-    #然后进行上传到静态资源和命名上传给数据库的工作
+    # #首先判断传入的照片是否有人脸----------------------------------------------出错了
+    # face_ori = face.file
+    # with NamedTemporaryFile(delete=True) as tmp:    
+    #     shutil.copyfileobj(face_ori,tmp)
+    #     number = facemodel.face_detect(tmp)
+    # if (number==0 or number>1):
+    #     return JSONResponse(
+    #             content={
+    #                 'code':422,
+    #                 'data':{
+                        
+    #                 },
+    #                 'message':'图片未检测到人脸或图片有多张人脸'
+    #             }
+    #         )
+    # 然后进行上传到静态资源和命名上传给数据库的工作
     peanutweb="http://424z7l3858.qicp.vip"   
     suffix = Path(face.filename).suffix
     localaddress = "./assets/faces/"+uname+suffix #静态资源库地址
-    fileaddress = peanutweb+"/assets/pictures/"+uname+suffix #外面可以访问到的地址
-    
-    try: 
+    fileaddress = peanutweb+"/assets/faces/"+uname+suffix #外面可以访问到的地址
+    print(localaddress)
+
+    try:
         newfile = open(localaddress,'wb') #以字节形式写入要加b
         shutil.copyfileobj(face.file,newfile) #复制文件 用newfile.write也写
-        print(fileaddress)
+        ####这个步出了错误！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！
+        newfile = open(localaddress,'rb')
+            #首先判断传入的照片是否有人脸----------------------------------------------出错了
+            # with NamedTemporaryFile(delete=True) as tmp:    
+            #     shutil.copyfileobj(face.file,tmp)
+        number = facemodel.face_detect(newfile)
+        if (number==0 or number>1):
+            return JSONResponse(
+                    content={
+                        'code':422,
+                        'data':{
+                            
+                        },
+                        'message':'图片未检测到人脸或图片有多张人脸'
+                    }
+                )
+
     except Exception as e:
-        print("失败",e)
+        print("失败",e,e.args)
     finally:
         face.file.close()
+        newfile.close()
     #传给uface的只有静态资源库的命名，因为该图片信息可以不进行展示--------------------------------
     facename = uname+suffix
     userDao.updateInformationSingleByName("uface",facename,uname)
@@ -382,6 +405,33 @@ def selectFans(uname):
             'data':{
                 'users_data':data,
                 'number':len(data)     
+            },
+            'message':'返回成功'
+        }
+    )
+
+'''
+访问他人页面
+'''
+def visit(uname:str,uname_other:str):
+    #查找uname是否关注uname_other
+    user_data = userDao.selectUsersByName(uname)
+    data = user_other_data = userDao.selectUsersByName(uname_other)
+    user_id = user_data[0]["uid"]
+    user_other_id= user_other_data[0]["uid"]
+    data_follow = userDao.selectFollowRelationship(user_id,user_other_id)
+    follow=False #标识
+    if (data_follow):
+        follow=True
+    return JSONResponse(
+        content={
+            'code':200,
+            'data':{
+                'uphoto':data[0]["uphoto"],
+                'ufans':data[0]["ufans"],
+                'ufollow':data[0]["ufollow"],
+                'usignature':data[0]["usignature"],
+                'bool_follow':follow
             },
             'message':'返回成功'
         }
