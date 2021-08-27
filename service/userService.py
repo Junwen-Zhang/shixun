@@ -224,17 +224,17 @@ def photoUpload(uname:str=Form(...), photofile:UploadFile=File(...)):
 def faceRecognition(uname:str=Body(...),face:UploadFile=File(...)):
     facemodel = FaceModel()
     #首先判断传入的照片是否有人脸
-    number = facemodel.face_detect(face.file)
-    if (number==0 or number>1):
-        return JSONResponse(
-            content={
-                'code':422,
-                'data':{
+    # number = facemodel.face_detect(face.file)
+    # if (number==0 or number>1):
+    #     return JSONResponse(
+    #         content={
+    #             'code':422,
+    #             'data':{
                     
-                },
-                'message':'图片未检测到人脸或图片有多张人脸'
-            }
-        )
+    #             },
+    #             'message':'图片未检测到人脸或图片有多张人脸'
+    #         }
+    #     )
     
     #从数据库中找到之前上传的照片
     data = userDao.selectUsersByName(uname)
@@ -244,40 +244,79 @@ def faceRecognition(uname:str=Body(...),face:UploadFile=File(...)):
     
     #刚传入的face去跟数据库里面的图片进行比对
     #是可以保证两张图片都有人脸的
-    result = facemodel.face_comparison(face.file,face_save)    ### face.file！！！！！！
-    if (result["is_same_person"]):
+    '''
+    为什么这里face.file就可以呢？
+    '''
+    # face_tobe = open("./assets/temporary/",'rb')
+    suffix = Path(face.filename).suffix
+    localaddress = "./assets/temporary/"+uname+suffix #静态资源库地址
+    face_to = open(localaddress,'wb')
+    shutil.copyfileobj(face.file,face_to)
+    face_to = open(localaddress,'rb')
+
+    # number = facemodel.face_detect(face_to)    #这一步在前面使用face.file后face.file就损坏了！！在前面又损坏了！！！！！！！
+    # if (number==0 or number>1):
+    #     return JSONResponse(
+    #         content={
+    #             'code':422,
+    #             'data':{
+                    
+    #             },
+    #             'message':'图片未检测到人脸或图片有多张人脸'
+    #         }
+    #     )
+
+    try: 
+        result = facemodel.face_comparison(face_to,face_save)
+        if (not result["face_found_in_image"]):
             return JSONResponse(
             content={
-                'code':200,
+                'code':422,
                 'data':{
-                    'result':result
+                    
                 },
-                'message':"比对成功"
+                'message':'图片未检测到人脸或图片有多张人脸'
             }
         )
-    else:
-            return JSONResponse(
-            content={
-                'code':400,
-                'data':{
-                    'result':result
-                },
-                'message':"比对失败"
-            }
-        )
+        # result = facemodel.face_comparison(face.file,face_save)    ### face.file！！！！！！
+        if (result["is_same_person"]):
+                return JSONResponse(
+                content={
+                    'code':200,
+                    'data':{
+                        'result':result
+                    },
+                    'message':"比对成功"
+                }
+            )
+        else:
+                return JSONResponse(
+                content={
+                    'code':400,
+                    'data':{
+                        'result':result
+                    },
+                    'message':"比对失败"
+                }
+            )
+    except Exception as e:
+        print("人脸比对失败",e)
 
 
 #跟photoload差不多，不过多了一个人脸检测
 #上传到uface的参数也改一下
 def faceUpload(uname:str=Body(...),face:UploadFile=File(...)):
-    
-    #首先检测人脸
     facemodel = FaceModel()
-    # #首先判断传入的照片是否有人脸----------------------------------------------出错了
+    '''
+    这种不行!!!!!!!!!!! 因为tmp不是一个文件流，除非先打开,但是临时文件不能打开
+    不一定是文件流的错，face.file也是可以传给face_detect进行识别的，但是这个时候上传到静态资源库的图片就是打不开（有损坏），也不知道为什么。
+    '''
+    # #首先判断传入的照片是否有人脸----------------------------------------------
     # face_ori = face.file
-    # with NamedTemporaryFile(delete=True) as tmp:    
-    #     shutil.copyfileobj(face_ori,tmp)
-    #     number = facemodel.face_detect(tmp)
+    # # with NamedTemporaryFile(delete=True) as tmp:    
+    # #     shutil.copyfileobj(face_ori,tmp)
+    # #     tmp_stream = open(tmp,'rb')
+    # number = facemodel.face_detect(face.file)
     # if (number==0 or number>1):
     #     return JSONResponse(
     #             content={
@@ -288,7 +327,8 @@ def faceUpload(uname:str=Body(...),face:UploadFile=File(...)):
     #                 'message':'图片未检测到人脸或图片有多张人脸'
     #             }
     #         )
-    # 然后进行上传到静态资源和命名上传给数据库的工作
+
+    ##然后进行上传到静态资源和命名上传给数据库的工作
     peanutweb="http://424z7l3858.qicp.vip"   
     suffix = Path(face.filename).suffix
     localaddress = "./assets/faces/"+uname+suffix #静态资源库地址
@@ -298,11 +338,12 @@ def faceUpload(uname:str=Body(...),face:UploadFile=File(...)):
     try:
         newfile = open(localaddress,'wb') #以字节形式写入要加b
         shutil.copyfileobj(face.file,newfile) #复制文件 用newfile.write也写
-        ####这个步出了错误！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！
+        '''
+        这是目前的解决方法，但是这样做必须记得下面的事项。
+        ####这样做，必须变成文件流才行，而且必须要变成'rb'!!!!!!!!!!!!!!
+        '''
+        #可以先上传后，再检测人脸，反正一个人最多存几种格式的
         newfile = open(localaddress,'rb')
-            #首先判断传入的照片是否有人脸----------------------------------------------出错了
-            # with NamedTemporaryFile(delete=True) as tmp:    
-            #     shutil.copyfileobj(face.file,tmp)
         number = facemodel.face_detect(newfile)
         if (number==0 or number>1):
             return JSONResponse(
@@ -314,9 +355,8 @@ def faceUpload(uname:str=Body(...),face:UploadFile=File(...)):
                         'message':'图片未检测到人脸或图片有多张人脸'
                     }
                 )
-
     except Exception as e:
-        print("失败",e,e.args)
+        print("失败",e)
     finally:
         face.file.close()
         newfile.close()
