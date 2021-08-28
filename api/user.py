@@ -22,10 +22,13 @@ router = APIRouter()
 用户注册以及登陆
 '''
 # 邮箱验证：输入返回验证码
-@router.get("/email_verification", tags=["users"])    #Field只能在pydantic里面使用
-async def emailVerification(email:str):
-     return userService.emailVerification(email)
+@router.get("/email_verification_register", tags=["users"])    #Field只能在pydantic里面使用
+async def emailVerification_Register(email:str):
+     return userService.emailVerification_Register(email)
 
+@router.get("/email_verification_changepasswd", tags=["users"])    #Field只能在pydantic里面使用
+async def emailVerification_Changepasswd(email:str):
+     return userService.emailVerification_Changepasswd(email)
 # 用户注册
 @router.post("/register", tags=["users"])  #请求体格式
 async def register(userInfo:UserModel):

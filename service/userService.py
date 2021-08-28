@@ -36,7 +36,7 @@ BASE_DIR = Path(__file__).resolve().parent #当前这个文件的父文件
 # def get_host(req) -> str:
 #     return getattr(req,"headers",{}).get("host") or "http://127.0.0.1:8000"
 
-def emailVerification(email:str):
+def emailVerification_Register(email:str):
     #首先判断邮箱是否已存在：一个邮箱只能绑定一个账户
     data = userDao.selectUsersByEmail(email)
     if(data):
@@ -72,7 +72,44 @@ def emailVerification(email:str):
             },
             "message":"邮箱发送失败"
         }
-    )   
+    )  
+def emailVerification_Changepasswd(email:str):
+    # #首先判断邮箱是否已存在：一个邮箱只能绑定一个账户
+    # data = userDao.selectUsersByEmail(email)
+    # if(data):
+    #     return JSONResponse(
+    #     content={
+    #         "code":422,
+    #         "data":{
+    #             "email":email
+    #         },
+    #         "message":"邮箱已注册"
+    #     }
+    # )
+
+    #增加邮箱验证模块
+    try:
+        emailmodel = EmailModel()
+        emailcode = emailmodel.registerEmail(email) #发送验证码
+        return JSONResponse(
+        content={
+            "code":200,
+            "data":{
+                "emailCode":emailcode
+            },
+            "message":"邮箱发送成功"
+        }
+    )
+    except Exception as e:
+        return JSONResponse(
+        content={
+            "code":400,
+            "data":{
+                "error":e
+            },
+            "message":"邮箱发送失败"
+        }
+    )    
 
 def usersRegister(userInfo:UserModel):
     #判断用户是否重名，且“已注销”不合法
