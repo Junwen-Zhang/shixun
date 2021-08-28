@@ -90,7 +90,7 @@ def emailVerification_Changepasswd(email:str):
     #增加邮箱验证模块
     try:
         emailmodel = EmailModel()
-        emailcode = emailmodel.registerEmail(email) #发送验证码
+        emailcode = emailmodel.changePasswdEmail(email) #发送验证码
         return JSONResponse(
         content={
             "code":200,
