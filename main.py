@@ -31,10 +31,10 @@ app.add_middleware(
 app.include_router(audio.router,prefix="/api/audios")
 app.include_router(passage.router,prefix="/yyjsb/passage")
 app.include_router(admin.router,prefix="/yyjsb/admin")
-app.include_router(user.router,prefix="/yyjsb/user")
+app.include_router(user.router,prefix="/yyjsb/users")
 app.include_router(comment.router,prefix="/yyjsb/comment")
 
 ## 配置容器启动相应的实例
 if __name__ == '__main__':
-    uvicorn.run(app='main:app', port=10086,reload=True)
+    uvicorn.run(app='main:app', port=8000,reload=True)
 
