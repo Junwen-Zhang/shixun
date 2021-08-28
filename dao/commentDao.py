@@ -27,29 +27,41 @@ def insertComment(commentModel:CommentModel):
                 ('%d','%d')
                     """%(comment_id, commentModel.passage_id)
     sqlmodel.sqlInsert(sql)
+
+    # 发表评论后，在passage表的相对应评论数+1
+    sql = '''UPDATE passage set comment_cnt=comment_cnt+1
+           WHERE pid='%d'
+        '''%(commentModel.passage_id)
+    sqlmodel.sqlInsert(sql)
     return comment_id
 
 
-# 由用户id来查看该用户所发表的评论内容的id,返回一个“评论内容id-时间-评论内容”的集合
+# 由用户id来查看该用户所发表的评论内容的id,返回一个“评论内容id-时间-评论内容”的集合(8月28日修改)
 def selectComment(uid:int,page_id:int):
     sqlmodel = SqlModel()
     sql = """SELECT * FROM user_comment
-            WHERE user_id='%d'
-            """ % (uid)
+            WHERE user_id=%d
+            limit %d,5
+            """ % (uid,(page_id-1)*5)
+    print("测试点1")
     uid_commentid_list = sqlmodel.sqlSelect(sql,False)
+    print("测试点2")
     ccontent_list=[]
     for row in uid_commentid_list:
-        commentid = row['comment_id']            #  row
+        commentid = row['comment_id']            # row
         sql = """SELECT * FROM comment
             WHERE comment_id='%d'
             """ % (commentid)
         temp = sqlmodel.sqlSelect(sql, True)
         ccontent_list.append(temp)
+    ccontent_list.sort(key=lambda x: x["cdate"],reverse=True)  # 评论时间倒叙
+    '''
     size = len(ccontent_list)
-    if size < page_id * 5:
-        ccontent_list = ccontent_list[(page_id - 1) * 5:]
+    if size<page_id*5:
+        ccontent_list = ccontent_list[(page_id-1)*5:]
     else:
-        ccontent_list = ccontent_list[(page_id - 1) * 5:page_id * 5]
+        ccontent_list = ccontent_list[(page_id-1)*5:page_id*5]
+    '''
     return ccontent_list
 
 # 删除评论
