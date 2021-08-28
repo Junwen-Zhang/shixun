@@ -27,6 +27,7 @@ def baiduApi(tex='1111',spd=5,pit=5,vol=5,per=4,urlpath="./assets/listentest_tem
         'pit':pit,
         'per':per
     })
+    print("试听文件的语音设置：",spd,pit,vol,per)
     # 识别正确返回语音二进制 错误则返回dict 参照下面错误码
     if not isinstance(result, dict):
         with open(urlpath, 'wb') as f:
@@ -87,6 +88,7 @@ def audioListentest(audioInfo:AudioModel):
 
 def setAudio(audioInfo:AudioModel):
     audioDao.updateAudioinfo(audioInfo.spd,audioInfo.pit,audioInfo.vol,audioInfo.per,audioInfo.uid)
+    print("更新的语音设置：",audioInfo.spd,audioInfo.pit,audioInfo.vol,audioInfo.per,audioInfo.uid)
     return JSONResponse(
                 content={
                     "code":"200",
