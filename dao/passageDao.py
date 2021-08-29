@@ -188,6 +188,7 @@ def postPassageLiking(passageLiking:PassageLiking):
         sqlmodel.sqlInsert(sql)
         sql="""UPDATE passage set like_cnt=like_cnt+1
            WHERE passage.pid=%s"""%(passageLiking.pid)
+        sqlmodel.sqlUpdate(sql)
     return sucornot
 
 #添加浏览量(进入文章具体页面时调用)
