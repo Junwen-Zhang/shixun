@@ -12,10 +12,11 @@ from aiopathlib import AsyncPath
 from fastapi.staticfiles import StaticFiles
 import cv2 as cv
 from tempfile import NamedTemporaryFile
+from model import compressModel
 import shutil
 import os
 BASE_DIR = Path(__file__).resolve().parent #当前这个文件的父文件
-peanutweb="http://424z7l3858.qicp.vip"   
+
 # def getUsersInfos(uname):
 #     ## 1、就是做需求的逻辑操作（对数据的处理，可能涉及到持久化层 这个数据不一定要入库，要根据需求决定）
 #     data = userDao.selectUsers(uname)
@@ -36,7 +37,7 @@ peanutweb="http://424z7l3858.qicp.vip"
 # def get_host(req) -> str:
 #     return getattr(req,"headers",{}).get("host") or "http://127.0.0.1:8000"
 
-def emailVerification_Register(email:str):
+def emailVerification(email:str):
     #首先判断邮箱是否已存在：一个邮箱只能绑定一个账户
     data = userDao.selectUsersByEmail(email)
     if(data):
@@ -72,44 +73,7 @@ def emailVerification_Register(email:str):
             },
             "message":"邮箱发送失败"
         }
-    )  
-def emailVerification_Changepasswd(email:str):
-    # #首先判断邮箱是否已存在：一个邮箱只能绑定一个账户
-    # data = userDao.selectUsersByEmail(email)
-    # if(data):
-    #     return JSONResponse(
-    #     content={
-    #         "code":422,
-    #         "data":{
-    #             "email":email
-    #         },
-    #         "message":"邮箱已注册"
-    #     }
-    # )
-
-    #增加邮箱验证模块
-    try:
-        emailmodel = EmailModel()
-        emailcode = emailmodel.changePasswdEmail(email) #发送验证码
-        return JSONResponse(
-        content={
-            "code":200,
-            "data":{
-                "emailCode":emailcode
-            },
-            "message":"邮箱发送成功"
-        }
-    )
-    except Exception as e:
-        return JSONResponse(
-        content={
-            "code":400,
-            "data":{
-                "error":e
-            },
-            "message":"邮箱发送失败"
-        }
-    )    
+    )   
 
 def usersRegister(userInfo:UserModel):
     #判断用户是否重名，且“已注销”不合法
@@ -221,7 +185,7 @@ def changePasswd(uemail:str,upasswd:str):
 
 #优化photoUpload-------------------
 def photoUpload(uname:str=Form(...), photofile:UploadFile=File(...)):   
-    # peanutweb="http://424z7l3858.qicp.vip"   ##花生壳网址 注意：以后对接的时候，这个花生壳网址会改变！！！！
+    peanutweb="http://424z7l3858.qicp.vip"   ##花生壳网址 注意：以后对接的时候，这个花生壳网址会改变！！！！
     suffix = Path(photofile.filename).suffix #尾缀
     localaddress = "./assets/pictures/"+uname+suffix #本地静态资源库的地址 .../表示上一级文件目录:反正就是不对 用./：不知道为什么？？？？？？？
     fileaddress = peanutweb+"/assets/pictures/"+uname+suffix  #在网站上前端访问的地址 
@@ -289,6 +253,7 @@ def faceRecognition(uname:str=Body(...),face:UploadFile=File(...)):
     localaddress = "./assets/temporary/"+uname+suffix #静态资源库地址
     face_to = open(localaddress,'wb')
     shutil.copyfileobj(face.file,face_to)
+    compressModel.compress_file(localaddress)
     face_to = open(localaddress,'rb')
 
     # number = facemodel.face_detect(face_to)    #这一步在前面使用face.file后face.file就损坏了！！在前面又损坏了！！！！！！！
@@ -366,20 +331,22 @@ def faceUpload(uname:str=Body(...),face:UploadFile=File(...)):
     #         )
 
     ##然后进行上传到静态资源和命名上传给数据库的工作
-    # peanutweb="http://424z7l3858.qicp.vip"   
+    peanutweb="http://424z7l3858.qicp.vip"   
     suffix = Path(face.filename).suffix
     localaddress = "./assets/faces/"+uname+suffix #静态资源库地址
     fileaddress = peanutweb+"/assets/faces/"+uname+suffix #外面可以访问到的地址
     print(localaddress)
 
     try:
+        #可以先上传后再保存，再检测人脸，反正一个人最多存几种格式的
         newfile = open(localaddress,'wb') #以字节形式写入要加b
         shutil.copyfileobj(face.file,newfile) #复制文件 用newfile.write也写
         '''
         这是目前的解决方法，但是这样做必须记得下面的事项。
         ####这样做，必须变成文件流才行，而且必须要变成'rb'!!!!!!!!!!!!!!
         '''
-        #可以先上传后，再检测人脸，反正一个人最多存几种格式的
+        #只有在这里将图片压缩了
+        compressModel.compress_file(localaddress)
         newfile = open(localaddress,'rb')
         number = facemodel.face_detect(newfile)
         if (number==0 or number>1):
