@@ -291,7 +291,7 @@ def faceRecognition(uname:str=Body(...),face:UploadFile=File(...)):
     localaddress = "./assets/temporary/"+uname+suffix #静态资源库地址
     face_to = open(localaddress,'wb')
     shutil.copyfileobj(face.file,face_to)
-    compressModel.compress_file(localaddress)
+    # compressModel.compress_file(localaddress)
     face_to = open(localaddress,'rb')
 
     # number = facemodel.face_detect(face_to)    #这一步在前面使用face.file后face.file就损坏了！！在前面又损坏了！！！！！！！
