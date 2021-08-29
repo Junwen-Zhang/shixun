@@ -16,7 +16,7 @@ from model import compressModel
 import shutil
 import os
 BASE_DIR = Path(__file__).resolve().parent #当前这个文件的父文件
-
+peanutweb="http://424z7l3858.qicp.vip" 
 # def getUsersInfos(uname):
 #     ## 1、就是做需求的逻辑操作（对数据的处理，可能涉及到持久化层 这个数据不一定要入库，要根据需求决定）
 #     data = userDao.selectUsers(uname)
@@ -223,7 +223,7 @@ def changePasswd(uemail:str,upasswd:str):
 
 #优化photoUpload-------------------
 def photoUpload(uname:str=Form(...), photofile:UploadFile=File(...)):   
-    peanutweb="http://424z7l3858.qicp.vip"   ##花生壳网址 注意：以后对接的时候，这个花生壳网址会改变！！！！
+    # peanutweb="http://424z7l3858.qicp.vip"   ##花生壳网址 注意：以后对接的时候，这个花生壳网址会改变！！！！
     suffix = Path(photofile.filename).suffix #尾缀
     localaddress = "./assets/pictures/"+uname+suffix #本地静态资源库的地址 .../表示上一级文件目录:反正就是不对 用./：不知道为什么？？？？？？？
     fileaddress = peanutweb+"/assets/pictures/"+uname+suffix  #在网站上前端访问的地址 
@@ -369,7 +369,7 @@ def faceUpload(uname:str=Body(...),face:UploadFile=File(...)):
     #         )
 
     ##然后进行上传到静态资源和命名上传给数据库的工作
-    peanutweb="http://424z7l3858.qicp.vip"   
+    # peanutweb="http://424z7l3858.qicp.vip"   
     suffix = Path(face.filename).suffix
     localaddress = "./assets/faces/"+uname+suffix #静态资源库地址
     fileaddress = peanutweb+"/assets/faces/"+uname+suffix #外面可以访问到的地址
