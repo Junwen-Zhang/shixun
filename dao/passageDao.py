@@ -14,7 +14,7 @@ def selectAllPassage(page):
     sqlmodel = SqlModel()
     #passage.pid,pname,ptime,pcontent,user.uname
     begin=(page-1)*4
-    sql = """SELECT passage.pid,pname,ptime,pcontent,plook,user.uname,user.uid from passage 
+    sql = """SELECT passage.pid,pname,ptime,pcontent,plook,user.uname,user.uid,comment_cnt,like_cnt from passage 
             INNER JOIN user_passage ON passage.pid=user_passage.pid
             INNER JOIN user ON user.uid=user_passage.uid
             order by ptime desc
@@ -22,14 +22,14 @@ def selectAllPassage(page):
     
     data = sqlmodel.sqlSelect(sql,get_one=False)
 
-    addallpassageliking(data)
+    #addallpassageliking(data)
 
     return data
 
 #查询所有文章（返回所有与所查文章名一样的文章）
 def selectSearchPassage(pname:str):   
     sqlmodel = SqlModel()
-    sql = """SELECT passage.pid,pname,ptime,pcontent,plook,user.uname from passage
+    sql = """SELECT passage.pid,pname,ptime,pcontent,plook,user.uname,comment_cnt,like_cnt from passage
             INNER JOIN user_passage ON passage.pid=user_passage.pid
             INNER JOIN user ON user.uid=user_passage.uid
             WHERE passage.pname LIKE '%%%s%%'
@@ -37,7 +37,7 @@ def selectSearchPassage(pname:str):
             """%(pname)
     data = sqlmodel.sqlSelect(sql,get_one=False)
 
-    addallpassageliking(data)
+    #addallpassageliking(data)
 
     return data
 
@@ -45,7 +45,7 @@ def selectSearchPassage(pname:str):
 def selectChosenPassage(pid):  
     sqlmodel = SqlModel() 
     updatePassageLook(pid)  
-    sql = """SELECT passage.pid,pname,ptime,pcontent,plook,user.uname from passage
+    sql = """SELECT passage.pid,pname,ptime,pcontent,plook,user.uname,user.uid,like_cnt from passage
             INNER JOIN user_passage ON passage.pid=user_passage.pid
             INNER JOIN user ON user.uid=user_passage.uid
             WHERE passage.pid=%s"""%(pid)
@@ -68,7 +68,7 @@ def selectMyPassage(uid,page):
             order by ptime desc
             limit %s,4"""%(uid,begin)
     data = sqlmodel.sqlSelect(sql,get_one=False)
-    addpassageliking(data)
+    #addpassageliking(data)
     return data
 
 #查询我的文章
@@ -88,7 +88,7 @@ def selectMySearchPassage(pname:str,uid:int):
 def selectMyChosenPassage(pid): 
     updatePassageLook(pid)  
     sqlmodel = SqlModel()
-    sql = """SELECT passage.pcontent, passage.pname,passage.ptime,plook from passage
+    sql = """SELECT passage.pcontent, passage.pname,passage.ptime,plook,like_cnt from passage
                 WHERE pid=%s"""%(pid)
     data = sqlmodel.sqlSelect(sql,get_one=False)
     addpassageliking(data)
@@ -109,8 +109,8 @@ def insertPassage(passageInfo:PassageModel):
 
 
     if(len(data)==0):
-        sql = """INSERT INTO passage(pname,pcontent,ptime,plook)
-                VALUES ('%s','%s','%s',%s)"""%(passageInfo.pname,passageInfo.pcontent,datetime.datetime.now(),0)  
+        sql = """INSERT INTO passage(pname,pcontent,ptime,plook,like_cnt,comment_cnt)
+                VALUES ('%s','%s','%s',%s,%s)"""%(passageInfo.pname,passageInfo.pcontent,datetime.datetime.now(),0,0,0)  
         sqlmodel.sqlInsert(sql)
 
         sql2= """SELECT passage.pid from passage
@@ -165,9 +165,7 @@ def selectPassageComment(pid:int):
 def selectPassageLiking(pid:int):
 
     sqlmodel = SqlModel()
-    sql="""SELECT uname,user.uid from user
-            INNER Join nkxtest_user_likingpassage ON user.uid=nkxtest_user_likingpassage.uid
-            INNER Join passage ON passage.pid=nkxtest_user_likingpassage.pid
+    sql="""SELECT plike from 
             WHERE passage.pid=%s"""%(pid)
     data=sqlmodel.sqlSelect(sql,get_one=False)
     return data
@@ -188,6 +186,8 @@ def postPassageLiking(passageLiking:PassageLiking):
         sql="""INSERT INTO nkxtest_user_likingpassage(uid,pid)
             VALUES (%s,%s)"""%(passageLiking.wholiking_id,passageLiking.pid)
         sqlmodel.sqlInsert(sql)
+        sql="""UPDATE passage set like_cnt=like_cnt+1
+           WHERE passage.pid=%s"""%(passageLiking.pid)
     return sucornot
 
 #添加浏览量(进入文章具体页面时调用)
@@ -210,9 +210,9 @@ def addallpassageliking(data):
 #data数据中添加点赞评论信息
 def addpassageliking(data):
     for sdata in data:
-        like=selectPassageLiking(sdata['pid'])
-        sdata['who_like']=like
-        sdata['like_cnt']=len(like)
+        #like=selectPassageLiking(sdata['pid'])
+        #sdata['who_like']=like
+        #sdata['like_cnt']=len(like)
         comment=selectPassageComment(sdata['pid'])
         sdata['comment']=comment
         sdata['comment_cnt']=len(comment)
