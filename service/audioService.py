@@ -12,7 +12,7 @@ from dao import audioDao
 
 BASE_DIR = Path(__file__).resolve().parent
 
-path="http://42nq568281.qicp.vip"
+path="http://424z7l3858.qicp.vip"
 
 
 #内部调用百度语音合成的接口，生成mp3文件
