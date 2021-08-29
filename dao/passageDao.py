@@ -13,12 +13,12 @@ datapath="./assets/audio/passage/"
 def selectAllPassage(page):  
     sqlmodel = SqlModel()
     #passage.pid,pname,ptime,pcontent,user.uname
-    begin=(page-1)*4
+    begin=(page-1)*7
     sql = """SELECT passage.pid,pname,ptime,pcontent,plook,user.uname,user.uid,comment_cnt,like_cnt from passage 
             INNER JOIN user_passage ON passage.pid=user_passage.pid
             INNER JOIN user ON user.uid=user_passage.uid
             order by ptime desc
-            limit %s,4"""%(begin)
+            limit %s,7"""%(begin)
     
     data = sqlmodel.sqlSelect(sql,get_one=False)
 
@@ -60,13 +60,13 @@ def selectChosenPassage(pid):
 
 #罗列我的文章列表
 def selectMyPassage(uid,page): 
-    begin=(page-1)*4
+    begin=(page-1)*7
     sqlmodel = SqlModel()
     sql="""  SELECT * from passage
             INNER JOIN user_passage ON passage.pid=user_passage.pid
             WHERE user_passage.uid=%s
             order by ptime desc
-            limit %s,4"""%(uid,begin)
+            limit %s,7"""%(uid,begin)
     data = sqlmodel.sqlSelect(sql,get_one=False)
     #addpassageliking(data)
     return data
@@ -110,7 +110,7 @@ def insertPassage(passageInfo:PassageModel):
 
     if(len(data)==0):
         sql = """INSERT INTO passage(pname,pcontent,ptime,plook,like_cnt,comment_cnt)
-                VALUES ('%s','%s','%s',%s,%s)"""%(passageInfo.pname,passageInfo.pcontent,datetime.datetime.now(),0,0,0)  
+                VALUES ('%s','%s','%s',%s,%s,%s)"""%(passageInfo.pname,passageInfo.pcontent,datetime.datetime.now(),0,0,0)  
         sqlmodel.sqlInsert(sql)
 
         sql2= """SELECT passage.pid from passage

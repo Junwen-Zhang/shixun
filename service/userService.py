@@ -251,9 +251,7 @@ def photoUpload(uname:str=Form(...), photofile:UploadFile=File(...)):
     return JSONResponse(
         content={
             'code':200,
-            'data':{
-                'image':fileaddress
-            },
+            'data':fileaddress,   #改了！！！！！
             'message':'上传头像成功'
         }
     )
@@ -320,17 +318,19 @@ def faceRecognition(uname:str=Body(...),face:UploadFile=File(...)):
         )
         # result = facemodel.face_comparison(face.file,face_save)    ### face.file！！！！！！
         if (result["is_same_person"]):
-                return JSONResponse(
+            print("比对成功")
+            return JSONResponse(
                 content={
                     'code':200,
                     'data':{
-                        'result':result
+                        'data':data
                     },
                     'message':"比对成功"
                 }
             )
         else:
-                return JSONResponse(
+            print("比对失败")
+            return JSONResponse(
                 content={
                     'code':400,
                     'data':{
