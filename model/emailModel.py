@@ -77,6 +77,7 @@ class EmailModel():
         try:
             smtpObj = smtplib.SMTP()
             #连接到服务器
+            # smtpObj = smtplib.SMTP_SSL('smtp.163.com',465)
             smtpObj.connect(self.mail_host,25)
             #登录到服务器
             smtpObj.login(self.mail_user,self.mail_pass) 
@@ -93,4 +94,4 @@ class EmailModel():
 if __name__ == "__main__":
     emailmodel = EmailModel()
     emailmodel.codeGenerate()
-    code = emailmodel.registerEmail("1111@qq.com")
+    code = emailmodel.registerEmail("2352798581@qq.com")

@@ -432,8 +432,9 @@ def followOther(uname,uname_other):  #uname和uname_other一定是存在的，�
     userDao.updateInformationSingleByName(edit_name="ufollow",edit_data=data1_follow,uname=uname)
     #uname_other的粉丝数减去1
     data2_fans = user_other_data[0]["ufans"]-1
-    #user_user表的删除
     userDao.updateInformationSingleByName(edit_name="ufans",edit_data=data2_fans,uname=uname_other)
+    #user_user表的删除
+    userDao.deleteFollowRelationship(user_id,user_other_id)
     if (data):
         userDao.deleteFollowRelationship(user_id,user_other_id)
         return JSONResponse(
