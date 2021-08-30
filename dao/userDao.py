@@ -10,16 +10,16 @@ from model.userModel import UserModel
 from model.sqlModel import SqlModel
 from fastapi import Body
 
-peanutweb = "http://424z7l3858.qicp.vip"
+
 # def selectUsers(uname):    ##!!!host最先写错了，210写成201！！！
 #     data = sqlmodel.sqlSelct("sql")
 #     return data
 
-
+peanutweb="http://120.78.204.183"
 #这里用到花生壳了------------------------------------------------------------------------------------
 #插入用户的账户名、密码、邮箱
 def insertUsers(userInfo:UserModel):  #用户注册只需要unam,upasswd,uemail，添加uadmin=0 不是管理员-以及默认声音设置   ufollow，ufans
-    defaultphoto = peanutweb+"/assets/pictures/已注销.png"
+    defaultphoto = peanutweb+"/assets/pictures/初始头像.png"
     sqlmodel = SqlModel()
     sql = """INSERT INTO user(uname,upasswd,uemail,uadmin,aspeed,apit,avol,aper,ufollow,ufans,uphoto) 
              VALUES ('%s','%s','%s',0,5,5,5,0,0,0,'%s')"""%(userInfo.uname,userInfo.upasswd,userInfo.uemail,defaultphoto) ##特别注意这里%s上面有引号！！！！

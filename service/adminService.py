@@ -14,13 +14,25 @@ def displayUsers():
         }
     ) 
 
-def deleteUserFake(uname:str):
-    adminDao.updateInformationSingle("uname","已注销",uname)
+def deleteUserFake(uid:int):
+    data = adminDao.selectUsersById(uid)
+    print(data)
+    if (data[0]["uname"]=="已注销"):
+        return JSONResponse(
+        content={
+            "code":422,
+            "data":{
+                "user_id":uid
+            },
+            "message":"该用户已删除"
+        }
+    )
+    adminDao.updateInformationAllById(uid)
     return JSONResponse(
         content={
             "code":200,
             "data":{
-                "user":uname
+                "user_id":uid
             },
             "message":"删除该用户成功"
         }
